@@ -8,10 +8,12 @@ import Footer from './component/Footer.tsx';
 import CategoryListComponent from './component/category/CategoryList.tsx';
 import ProductListComponent from './component/product/ProductList.tsx';
 import ProductDetailViewComponent from './component/product/ProductDetailView.tsx';
-import BasketComponent from './component/basket/Basket.tsx';
+import BasketListComponent from './component/basket/BasketList.tsx';
 import BasketNavigation from './component/basket/BasketNavigation.tsx';
 import { useState } from 'react';
 import { BasketItem } from './component/basket/BasketSingleton.tsx';
+import OrderConfirmationComponent from "./component/checkout/OrderConfirmation.tsx";
+import CheckoutComponent from "./component/checkout/Checkout.tsx";
 
 export const ROUTES = {
     HOME: '/',
@@ -20,6 +22,8 @@ export const ROUTES = {
     PRODUCTS: '/products/:categoryId',
     PRODUCT_DETAIL: '/product-detail/:slug',
     BASKET: '/basket',
+    CHECKOUT: '/checkout',
+    ORDER_CONFIRMATION: '/order-confirmation',
     NOT_FOUND: '*',
 };
 
@@ -46,7 +50,9 @@ function App() {
                         <Route path={ROUTES.CATEGORIES} element={<CategoryListComponent />} />
                         <Route path={ROUTES.PRODUCTS} element={<ProductListComponent basketItemsInput={setBasketItems} />} />
                         <Route path={ROUTES.PRODUCT_DETAIL} element={<ProductDetailViewComponent />} />
-                        <Route path={ROUTES.BASKET} element={<BasketComponent />} />
+                        <Route path={ROUTES.BASKET} element={<BasketListComponent />} />
+                        <Route path={ROUTES.CHECKOUT} element={<CheckoutComponent/>} />
+                        <Route path={ROUTES.ORDER_CONFIRMATION} element={<OrderConfirmationComponent />} />
                         <Route path={ROUTES.NOT_FOUND} element={<NotFoundComponent />} />
                     </Routes>
                 </Container>

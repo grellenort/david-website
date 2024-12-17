@@ -1,6 +1,6 @@
-import {Category} from "./model/category";
+import {Category} from "./model/Category.ts";
 import {useEffect, useState} from "react";
-import {CategoryResponse} from "./model/category-response";
+import {CategoryResponse} from "./model/CategoryResponse.ts";
 import {GenericFetchClient} from "../common/GenericFetchClient.tsx";
 import {Link} from "react-router-dom";
 

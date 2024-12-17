@@ -1,4 +1,4 @@
-import {Category} from './category.ts';
+import {Category} from './Category.ts';
 
 export class CategoryResponse {
   data: Array<Category>;

@@ -5,9 +5,12 @@ import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import {clearBasket, getBasket} from "./BasketSingleton.tsx";
+import {useNavigate} from "react-router-dom";
+import {ROUTES} from "../../App.tsx";
 
-const BasketComponent: React.FC = () => {
+const BasketListComponent: React.FC = () => {
     const [basket, setBasket] = useState(getBasket());
+    const navigate = useNavigate();
 
     const handleClearBasket = () => {
         clearBasket();
@@ -16,6 +19,11 @@ const BasketComponent: React.FC = () => {
 
     const calculateTotal = () => {
         return basket.reduce((total, item) => total + item.product.priceAmount * item.quantity, 0);
+    };
+
+    const handleCheckout = () => {
+        // Redirect to checkout page
+        navigate(ROUTES.CHECKOUT);
     };
 
     if (basket.length === 0) {
@@ -50,7 +58,7 @@ const BasketComponent: React.FC = () => {
                     <Button variant="danger" onClick={handleClearBasket}>
                         Clear Basket
                     </Button>
-                    <Button variant="success" onClick={() => console.log("Proceed to checkout")}>
+                    <Button variant="success" onClick={handleCheckout}> {/* Link to Checkout */}
                         Checkout
                     </Button>
                 </div>
@@ -67,4 +75,4 @@ function getImage(file: { bytes: string; type: string }) {
     return "path/to/default-image.png"; // Default image path
 }
 
-export default BasketComponent;
+export default BasketListComponent;
