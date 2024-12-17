@@ -1,21 +1,12 @@
-import { Category } from "./model/category";
-import { useEffect, useState } from "react";
-import { CategoryResponse } from "./model/category-response";
+import {Category} from "./model/category";
+import {useEffect, useState} from "react";
+import {CategoryResponse} from "./model/category-response";
+import {GenericFetchClient} from "../common/GenericFetchClient.tsx";
+import {Link} from "react-router-dom";
 
-const baseURL = 'https://waldashop.herokuapp.com/api/categories';
+const baseURL = 'https://waldashop.herokuapp.com';
 
-class ApiService {
-    // Generic async function to fetch data from a given URL
-    async fetchData<T>(url: string): Promise<T> {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json(); // Returns parsed JSON as type T
-    }
-}
-
-const apiService = new ApiService();
+const apiService = new GenericFetchClient(baseURL);
 
 function CategoryListComponent() {
     const [categories, setCategories] = useState<Category[]>([]);
@@ -25,7 +16,7 @@ function CategoryListComponent() {
         const fetchCategories = async () => {
             try {
                 // Fetch the CategoryResponse
-                const data = await apiService.fetchData<CategoryResponse>(baseURL);
+                const data = await apiService.fetchData<CategoryResponse>('/api/categories','');
                 // Set categories from the data field of CategoryResponse
                 setCategories(data.data); // Assuming `data` contains the list of categories
             } catch (err) {
@@ -42,9 +33,10 @@ function CategoryListComponent() {
     return (
         <ul>
             {categories.map((category) => (
-                <li key={category.name}>
-                    <strong>{category.name}</strong>: {category.description}
-                </li>
+                <div key={category.name}>
+                    <strong>{category.name}</strong>: {category.description}: '{category.url}'
+                    <Link to={`/products/${category.url}`}>{category.name}</Link>
+                </div>
             ))}
         </ul>
     );

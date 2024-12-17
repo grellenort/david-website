@@ -6,6 +6,8 @@ import AboutComponent from "./component/About";
 import {Container} from "react-bootstrap";
 import Footer from "./component/Footer.tsx";
 import CategoryListComponent from "./component/category/CategoryList.tsx";
+import ProductListComponent from "./component/product/ProductList.tsx";
+import ProductDetailViewComponent from "./component/product/ProductDetailView.tsx";
 
 function App() {
 
@@ -26,6 +28,8 @@ function App() {
                         <Route path="/" element={<HomeComponent/>}/>
                         <Route path="/about" element={<AboutComponent/>}/>
                         <Route path="/categories" element={<CategoryListComponent/>}/>
+                        <Route path="/products/:categoryId" element={<ProductListComponent/>}/>
+                        <Route path="/product-detail/:slug" element={<ProductDetailViewComponent/>}/>
                         <Route path="*" element={<NotFoundComponent/>}/>
                     </Routes>
                 </Container>
