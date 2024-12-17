@@ -1,11 +1,11 @@
-import {Category} from "./model/Category.ts";
-import {useEffect, useState} from "react";
-import {CategoryResponse} from "./model/CategoryResponse.ts";
-import {GenericFetchClient} from "../common/GenericFetchClient.tsx";
-import {Link} from "react-router-dom";
+import { Category } from "./model/Category.ts";
+import { useEffect, useState } from "react";
+import { CategoryResponse } from "./model/CategoryResponse.ts";
+import { GenericFetchClient } from "../common/GenericFetchClient.tsx";
+import { Link } from "react-router-dom";
+import { Nav } from "react-bootstrap";
 
 const baseURL = 'https://waldashop.herokuapp.com';
-
 const apiService = new GenericFetchClient(baseURL);
 
 function CategoryListComponent() {
@@ -16,7 +16,7 @@ function CategoryListComponent() {
         const fetchCategories = async () => {
             try {
                 // Fetch the CategoryResponse
-                const data = await apiService.fetchData<CategoryResponse>('/api/categories','');
+                const data = await apiService.fetchData<CategoryResponse>('/api/categories', '');
                 // Set categories from the data field of CategoryResponse
                 setCategories(data.data); // Assuming `data` contains the list of categories
             } catch (err) {
@@ -31,14 +31,15 @@ function CategoryListComponent() {
     if (!categories.length) return <div>Loading...</div>;
 
     return (
-        <ul>
+        <Nav className="justify-content-center">
             {categories.map((category) => (
-                <div key={category.name}>
-                    <strong>{category.name}</strong>: {category.description}: '{category.url}'
-                    <Link to={`/products/${category.url}`}>{category.name}</Link>
-                </div>
+                <Nav.Item key={category.name}>
+                    <Nav.Link as={Link} to={`/products/${category.url}`}>
+                        {category.name}
+                    </Nav.Link>
+                </Nav.Item>
             ))}
-        </ul>
+        </Nav>
     );
 }
 

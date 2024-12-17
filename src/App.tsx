@@ -39,15 +39,16 @@ function App() {
                     <NavLink className="nav-link" to="/neco2">Item 3</NavLink>
                     <NavLink className="nav-link" to="/neco3">Item 4</NavLink>
                     <NavLink className="nav-link" to={ROUTES.ABOUT}>About</NavLink>
-                    <NavLink className="nav-link" to={ROUTES.CATEGORIES}>Categories</NavLink>
+                    {/*<NavLink className="nav-link" to={ROUTES.CATEGORIES}>Categories</NavLink>*/}
                     <BasketNavigation basketItems={basketItems}></BasketNavigation>
                 </nav>
+                <CategoryListComponent />
 
                 <Container>
                     <Routes>
                         <Route path={ROUTES.HOME} element={<HomeComponent />} />
                         <Route path={ROUTES.ABOUT} element={<AboutComponent />} />
-                        <Route path={ROUTES.CATEGORIES} element={<CategoryListComponent />} />
+                        {/*<Route path={ROUTES.CATEGORIES} element={<CategoryListComponent />} />*/}
                         <Route path={ROUTES.PRODUCTS} element={<ProductListComponent basketItemsInput={setBasketItems} />} />
                         <Route path={ROUTES.PRODUCT_DETAIL} element={<ProductDetailViewComponent />} />
                         <Route path={ROUTES.BASKET} element={<BasketListComponent />} />
