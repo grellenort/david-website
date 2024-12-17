@@ -1,15 +1,19 @@
-import {useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Product} from './model/Product.ts';
 import {GenericFetchClient} from "../common/GenericFetchClient.tsx";
 import ProductItemListView from "./ProductItemListView.tsx";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import {useNavigate} from "react-router-dom"; // Pagination control component
+import {useNavigate} from "react-router-dom";
+import {addToBasket, BasketItem, getBasket} from "../basket/BasketSingleton.tsx"; // Pagination control component
 const baseURL = 'https://waldashop.herokuapp.com/api';
 const productClient = new GenericFetchClient(baseURL);
 
+interface BasketFunction {
+    basketItemsInput: (items: BasketItem[]) => void;
+}
 
-function ProductListComponent() {
+const ProductListComponent: React.FC<BasketFunction> = ({ basketItemsInput }) =>{
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -17,6 +21,7 @@ function ProductListComponent() {
     const [totalItems, setTotalItems] = useState<number>(0);
     const pageSize = 30; // Items per page
     const navigate = useNavigate();
+
 
     // Function to build query string from filter object
     const buildQueryString = (filters: any): string => {
@@ -70,7 +75,12 @@ function ProductListComponent() {
                 <Col key={product.url} md={4} lg={3}>
                     <ProductItemListView
                         product={product}
-                        onAddToCart={(prod) => console.log(`Added ${prod.name} to cart`)}
+                        onAddToCart={(prod) => {
+                            console.log(`Added ${prod.name} to cart`)
+                            addToBasket(prod, 1);
+                            basketItemsInput(getBasket())
+                        }
+                        }
                         onViewDetails={(prod) => {
                             console.log(`View details for ${prod.name}`)
                             navigate(`/product-detail/${prod.url}`); // Redirect to product details page
