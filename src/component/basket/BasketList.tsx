@@ -1,32 +1,28 @@
-import React, { useState } from "react";
-
+import React from "react";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
-import {clearBasket, getBasket} from "./BasketSingleton.tsx";
-import {useNavigate} from "react-router-dom";
-import {ROUTES} from "../../App.tsx";
+import { useBasket } from "./BasketContext";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "../../App.tsx";
 
 const BasketListComponent: React.FC = () => {
-    const [basket, setBasket] = useState(getBasket());
+    const { state, dispatch } = useBasket();
     const navigate = useNavigate();
 
     const handleClearBasket = () => {
-        clearBasket();
-        setBasket([]);
+        dispatch({ type: "CLEAR_BASKET" });
     };
 
-    const calculateTotal = () => {
-        return basket.reduce((total, item) => total + item.product.priceAmount * item.quantity, 0);
-    };
+    const calculateTotal = () =>
+        state.items.reduce((total, item) => total + item.product.priceAmount * item.quantity, 0);
 
     const handleCheckout = () => {
-        // Redirect to checkout page
         navigate(ROUTES.CHECKOUT);
     };
 
-    if (basket.length === 0) {
+    if (state.items.length === 0) {
         return <div className="text-center mt-5">Your basket is empty!</div>;
     }
 
@@ -34,10 +30,14 @@ const BasketListComponent: React.FC = () => {
         <div className="basket-container">
             <h2 className="text-center mb-4">Your Basket</h2>
             <Row className="gy-4">
-                {basket.map((item, index) => (
+                {state.items.map((item, index) => (
                     <Col key={index} md={6} lg={4}>
                         <Card className="h-100">
-                            <Card.Img variant="top" src={getImage(item.product.file)} alt={item.product.name} />
+                            <Card.Img
+                                variant="top"
+                                // src={`data:${item.product.file.type};base64,${item.product.file.bytes}`}
+                                alt={item.product.name}
+                            />
                             <Card.Body>
                                 <Card.Title>{item.product.name}</Card.Title>
                                 <Card.Text>
@@ -53,26 +53,15 @@ const BasketListComponent: React.FC = () => {
                 ))}
             </Row>
             <div className="mt-4">
-                <h4>Total: {calculateTotal()} {basket[0]?.product.priceCurrency}</h4>
+                <h4>Total: {calculateTotal()} {state.items[0]?.product.priceCurrency}</h4>
                 <div className="d-flex justify-content-between mt-3">
                     <Button variant="danger" onClick={handleClearBasket}>
                         Clear Basket
-                    </Button>
-                    <Button variant="success" onClick={handleCheckout}> {/* Link to Checkout */}
-                        Checkout
                     </Button>
                 </div>
             </div>
         </div>
     );
 };
-
-// Helper function to get image from product file (base64 encoded)
-function getImage(file: { bytes: string; type: string }) {
-    if (file?.bytes && file?.type) {
-        return `data:${file.type};base64,${file.bytes}`;
-    }
-    return "path/to/default-image.png"; // Default image path
-}
 
 export default BasketListComponent;

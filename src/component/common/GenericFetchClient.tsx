@@ -6,7 +6,7 @@ export class GenericFetchClient {
     }
 
     // Generic async function to fetch data with query parameters
-    async fetchData<T>(url: string, params: string): Promise<T> {
+    async  fetchData<T>(url: string, params: string): Promise<T> {
 
 
         const fullUrl = `${this.baseUrl}${url}?${params}`;

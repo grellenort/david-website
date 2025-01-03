@@ -2,7 +2,7 @@ import {OrderItem} from './OrderItem.ts';
 import {OrderAddress} from "./OrderAddress.ts";
 
 
-enum PaymentType {
+export enum PaymentType {
   CREDIT_CARD,
   BANK_TRANSFER
 }

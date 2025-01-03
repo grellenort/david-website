@@ -2,18 +2,20 @@ import React, {useState} from "react";
 import {Accordion, Button, Col, Form, Row} from "react-bootstrap";
 import {useNavigate} from "react-router-dom";
 import {GenericFetchClient} from "../common/GenericFetchClient";
-import {getBasket} from "../basket/BasketSingleton";
 import {ROUTES} from "../../App.tsx";
+import {Order, PaymentType} from "./model/Order.ts";
+import {useBasket} from "../basket/BasketContext.tsx";
+import BasketListComponent from "../basket/BasketList.tsx";
 
-// Create an instance of the GenericFetchClient
 let baseUrl = "https://waldashop.herokuapp.com/api";
 const orderClient = new GenericFetchClient(baseUrl);
 
 const CheckoutComponent = () => {
-    const [orderData, setOrderData] = useState({
+    const {state} = useBasket();
+    const [orderData, setOrderData] = useState<Order>({
         email: "",
-        paymentType: "CREDIT_CARD", // Example, can be extended
-        items: getBasket().map(item => ({
+        paymentType: PaymentType.CREDIT_CARD,
+        items: state.items.map(item => ({
             productUrl: item.product.url,
             count: item.quantity,
         })),
@@ -31,7 +33,6 @@ const CheckoutComponent = () => {
         shippingAddress: {
             firstName: "",
             lastName: "",
-            email: "",
             phone: "",
             street: "",
             streetNumber: "",
@@ -45,9 +46,12 @@ const CheckoutComponent = () => {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [activeKey, setActiveKey] = useState<string | null>("0"); // Track active accordion item
+    const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
     const navigate = useNavigate();
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        event.preventDefault();
         const {name, value} = event.target;
         const [section, field] = name.split('.'); // For nested keys like 'billingAddress.firstName'
 
@@ -77,7 +81,6 @@ const CheckoutComponent = () => {
 
         try {
             const response = await orderClient.post("/orders", {data: orderData});
-            // Handle response, navigate to a success page
             console.log("Order created successfully", response);
             navigate(ROUTES.ORDER_CONFIRMATION);
         } catch (error) {
@@ -87,15 +90,37 @@ const CheckoutComponent = () => {
         }
     };
 
+    const handleNextAccordion = (section: string) => {
+        if (section === "shipping") {
+            setActiveKey("1"); // Move to the next section (billing)
+        } else if (section === "billing") {
+            setActiveKey("2"); // Move to the next section (payment)
+        } else if (section === "payment") {
+            setActiveKey("3"); // Final section
+        }
+    };
+
     return (
         <div className="checkout-container">
             <h2>Checkout</h2>
             {error && <div className="alert alert-danger">{error}</div>}
             <Form onSubmit={handleSubmit}>
-                <Accordion defaultActiveKey="0">
-                    {/* Shipping and Billing Address */}
+                <Accordion activeKey={activeKey} onSelect={(key) => setActiveKey(key)}>
+                    {/* Basket Section Accordion */}
                     <Accordion.Item eventKey="0">
-                        <Accordion.Header>Shipping & Billing Address</Accordion.Header>
+                        <Accordion.Header>Your Basket</Accordion.Header>
+                        <Accordion.Body>
+                            <BasketListComponent/>
+                            <Button onClick={() => handleNextAccordion("shipping")} variant="primary"
+                                    disabled={loading || Object.keys(formErrors).length > 0}>
+                                Next
+                            </Button>
+                        </Accordion.Body>
+                    </Accordion.Item>
+
+                    {/* Shipping and Billing Address */}
+                    <Accordion.Item eventKey="1">
+                        <Accordion.Header>Shipping Address</Accordion.Header>
                         <Accordion.Body>
                             <Row className="mb-3 align-items-center">
                                 <Col md={3}><label htmlFor="email">Email</label></Col>
@@ -109,270 +134,253 @@ const CheckoutComponent = () => {
                                         value={orderData.email}
                                         onChange={handleInputChange}
                                     />
+                                    {formErrors["email"] && <div className="text-danger">{formErrors["email"]}</div>}
                                 </Col>
                             </Row>
-                            {/* Shipping Address */}
-                            <h5>Shipping Address</h5>
-                            <Row className="mb-3 align-items-center">
-                                <Col md={3}><label htmlFor="shippingFirstName">First Name</label></Col>
+                            <Row className="mb-3">
+                                <Col md={3}><label htmlFor="firstName">First Name</label></Col>
                                 <Col md={9}>
                                     <input
                                         type="text"
                                         className="form-control"
-                                        id="shippingFirstName"
+                                        id="firstName"
                                         name="shippingAddress.firstName"
-                                        placeholder="First Name"
                                         value={orderData.shippingAddress.firstName}
                                         onChange={handleInputChange}
                                     />
+                                    {formErrors["firstName"] &&
+                                        <div className="text-danger">{formErrors["firstName"]}</div>}
                                 </Col>
                             </Row>
-                            <Row className="mb-3 align-items-center">
-                                <Col md={3}><label htmlFor="shippingLastName">Last Name</label></Col>
+                            <Row className="mb-3">
+                                <Col md={3}><label htmlFor="lastName">Last Name</label></Col>
                                 <Col md={9}>
                                     <input
                                         type="text"
                                         className="form-control"
-                                        id="shippingLastName"
+                                        id="lastName"
                                         name="shippingAddress.lastName"
-                                        placeholder="Last Name"
                                         value={orderData.shippingAddress.lastName}
                                         onChange={handleInputChange}
                                     />
+                                    {formErrors["lastName"] &&
+                                        <div className="text-danger">{formErrors["lastName"]}</div>}
                                 </Col>
                             </Row>
-                            <Row className="mb-3 align-items-center">
-                                <Col md={3}><label htmlFor="shippingPhone">Phone</label></Col>
+                            {/* Additional Fields for Shipping Address */}
+                            <Row className="mb-3">
+                                <Col md={3}><label htmlFor="phone">Phone</label></Col>
                                 <Col md={9}>
                                     <input
-                                        type="tel"
+                                        type="text"
                                         className="form-control"
-                                        id="shippingPhone"
+                                        id="phone"
                                         name="shippingAddress.phone"
-                                        placeholder="Phone"
                                         value={orderData.shippingAddress.phone}
                                         onChange={handleInputChange}
                                     />
+                                    {formErrors["phone"] && <div className="text-danger">{formErrors["phone"]}</div>}
                                 </Col>
                             </Row>
-                            <Row className="mb-3 align-items-center">
-                                <Col md={3}><label htmlFor="shippingStreet">Street</label></Col>
+                            <Row className="mb-3">
+                                <Col md={3}><label htmlFor="street">Street</label></Col>
                                 <Col md={9}>
                                     <input
                                         type="text"
                                         className="form-control"
-                                        id="shippingStreet"
+                                        id="street"
                                         name="shippingAddress.street"
-                                        placeholder="Street"
                                         value={orderData.shippingAddress.street}
                                         onChange={handleInputChange}
                                     />
+                                    {formErrors["street"] && <div className="text-danger">{formErrors["street"]}</div>}
                                 </Col>
                             </Row>
-                            <Row className="mb-3 align-items-center">
-                                <Col md={3}><label htmlFor="shippingStreetNumber">Street Number</label></Col>
+                            <Row className="mb-3">
+                                <Col md={3}><label htmlFor="city">City</label></Col>
                                 <Col md={9}>
                                     <input
                                         type="text"
                                         className="form-control"
-                                        id="shippingStreetNumber"
-                                        name="shippingAddress.streetNumber"
-                                        placeholder="Street Number"
-                                        value={orderData.shippingAddress.streetNumber}
-                                        onChange={handleInputChange}
-                                    />
-                                </Col>
-                            </Row>
-                            <Row className="mb-3 align-items-center">
-                                <Col md={3}><label htmlFor="shippingCity">City</label></Col>
-                                <Col md={9}>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        id="shippingCity"
+                                        id="city"
                                         name="shippingAddress.city"
-                                        placeholder="City"
                                         value={orderData.shippingAddress.city}
                                         onChange={handleInputChange}
                                     />
+                                    {formErrors["city"] && <div className="text-danger">{formErrors["city"]}</div>}
                                 </Col>
                             </Row>
-                            <Row className="mb-3 align-items-center">
-                                <Col md={3}><label htmlFor="shippingZipCode">Zip Code</label></Col>
+                            <Row className="mb-3">
+                                <Col md={3}><label htmlFor="zipCode">Zip Code</label></Col>
                                 <Col md={9}>
                                     <input
                                         type="text"
                                         className="form-control"
-                                        id="shippingZipCode"
+                                        id="zipCode"
                                         name="shippingAddress.zipCode"
-                                        placeholder="Zip Code"
                                         value={orderData.shippingAddress.zipCode}
                                         onChange={handleInputChange}
                                     />
+                                    {formErrors["zipCode"] &&
+                                        <div className="text-danger">{formErrors["zipCode"]}</div>}
                                 </Col>
                             </Row>
-                            <Row className="mb-3 align-items-center">
-                                <Col md={3}><label htmlFor="shippingCountry">Country</label></Col>
+                            <Row className="mb-3">
+                                <Col md={3}><label htmlFor="country">Country</label></Col>
                                 <Col md={9}>
                                     <input
                                         type="text"
                                         className="form-control"
-                                        id="shippingCountry"
+                                        id="country"
                                         name="shippingAddress.country"
-                                        placeholder="Country"
                                         value={orderData.shippingAddress.country}
                                         onChange={handleInputChange}
                                     />
+                                    {formErrors["country"] &&
+                                        <div className="text-danger">{formErrors["country"]}</div>}
+                                </Col>
+                            </Row>
+                            <Button onClick={() => handleNextAccordion("billing")} variant="primary"
+                                    disabled={loading || Object.keys(formErrors).length > 0}>
+                                Next
+                            </Button>
+                        </Accordion.Body>
+                    </Accordion.Item>
+
+                    <Accordion.Item eventKey="2">
+                        <Accordion.Header>Billing Address</Accordion.Header>
+                        <Accordion.Body>
+                            <Row className="mb-3 align-items-center">
+                                <Col md={3}><label htmlFor="billingFirstName">First Name</label></Col>
+                                <Col md={9}>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        id="billingFirstName"
+                                        name="billingAddress.firstName"
+                                        value={orderData.billingAddress.firstName}
+                                        onChange={handleInputChange}
+                                    />
+                                    {formErrors["billingFirstName"] && (
+                                        <div className="text-danger">{formErrors["billingFirstName"]}</div>
+                                    )}
                                 </Col>
                             </Row>
 
-                            {/* Billing Address */}
-                            <h5 className="mt-4">Billing Address</h5>
-                            <Row className="mb-3 align-items-center">
-                                <Col md={12}>
-                                    <div className="form-check">
-                                        <input
-                                            type="checkbox"
-                                            className="form-check-input"
-                                            id="billingAsShipping"
-                                            name="billingAsShipping"
-                                            checked={orderData.billingAsShipping}
-                                            onChange={(e) =>
-                                                setOrderData({...orderData, billingAsShipping: e.target.checked})
-                                            }
-                                        />
-                                        <label className="form-check-label" htmlFor="billingAsShipping">
-                                            Same as shipping address
-                                        </label>
-                                    </div>
+                            <Row className="mb-3">
+                                <Col md={3}><label htmlFor="billingLastName">Last Name</label></Col>
+                                <Col md={9}>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        id="billingLastName"
+                                        name="billingAddress.lastName"
+                                        value={orderData.billingAddress.lastName}
+                                        onChange={handleInputChange}
+                                    />
+                                    {formErrors["billingLastName"] && (
+                                        <div className="text-danger">{formErrors["billingLastName"]}</div>
+                                    )}
                                 </Col>
                             </Row>
-                            {/* Repeat billing address fields */}
-                            {!orderData.billingAsShipping && (
-                                <>
-                                    <h5 className="mt-4">Billing Address</h5>
-                                    <Row className="mb-3 align-items-center">
-                                        <Col md={3}><label htmlFor="billingFirstName">First Name</label></Col>
-                                        <Col md={9}>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                id="billingFirstName"
-                                                name="billingAddress.firstName"
-                                                placeholder="First Name"
-                                                value={orderData.billingAddress.firstName}
-                                                onChange={handleInputChange}
-                                            />
-                                        </Col>
-                                    </Row>
-                                    <Row className="mb-3 align-items-center">
-                                        <Col md={3}><label htmlFor="billingLastName">Last Name</label></Col>
-                                        <Col md={9}>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                id="billingLastName"
-                                                name="billingAddress.lastName"
-                                                placeholder="Last Name"
-                                                value={orderData.billingAddress.lastName}
-                                                onChange={handleInputChange}
-                                            />
-                                        </Col>
-                                    </Row>
-                                    <Row className="mb-3 align-items-center">
-                                        <Col md={3}><label htmlFor="billingPhone">Phone</label></Col>
-                                        <Col md={9}>
-                                            <input
-                                                type="tel"
-                                                className="form-control"
-                                                id="billingPhone"
-                                                name="billingAddress.phone"
-                                                placeholder="Phone"
-                                                value={orderData.billingAddress.phone}
-                                                onChange={handleInputChange}
-                                            />
-                                        </Col>
-                                    </Row>
-                                    <Row className="mb-3 align-items-center">
-                                        <Col md={3}><label htmlFor="billingStreet">Street</label></Col>
-                                        <Col md={9}>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                id="billingStreet"
-                                                name="billingAddress.street"
-                                                placeholder="Street"
-                                                value={orderData.billingAddress.street}
-                                                onChange={handleInputChange}
-                                            />
-                                        </Col>
-                                    </Row>
-                                    <Row className="mb-3 align-items-center">
-                                        <Col md={3}><label htmlFor="billingStreetNumber">Street Number</label></Col>
-                                        <Col md={9}>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                id="billingStreetNumber"
-                                                name="billingAddress.streetNumber"
-                                                placeholder="Street Number"
-                                                value={orderData.billingAddress.streetNumber}
-                                                onChange={handleInputChange}
-                                            />
-                                        </Col>
-                                    </Row>
-                                    <Row className="mb-3 align-items-center">
-                                        <Col md={3}><label htmlFor="billingCity">City</label></Col>
-                                        <Col md={9}>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                id="billingCity"
-                                                name="billingAddress.city"
-                                                placeholder="City"
-                                                value={orderData.billingAddress.city}
-                                                onChange={handleInputChange}
-                                            />
-                                        </Col>
-                                    </Row>
-                                    <Row className="mb-3 align-items-center">
-                                        <Col md={3}><label htmlFor="billingZipCode">Zip Code</label></Col>
-                                        <Col md={9}>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                id="billingZipCode"
-                                                name="billingAddress.zipCode"
-                                                placeholder="Zip Code"
-                                                value={orderData.billingAddress.zipCode}
-                                                onChange={handleInputChange}
-                                            />
-                                        </Col>
-                                    </Row>
-                                    <Row className="mb-3 align-items-center">
-                                        <Col md={3}><label htmlFor="billingCountry">Country</label></Col>
-                                        <Col md={9}>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                id="billingCountry"
-                                                name="billingAddress.country"
-                                                placeholder="Country"
-                                                value={orderData.billingAddress.country}
-                                                onChange={handleInputChange}
-                                            />
-                                        </Col>
-                                    </Row>
-                                </>
-                            )}
+
+                            <Row className="mb-3">
+                                <Col md={3}><label htmlFor="billingPhone">Phone</label></Col>
+                                <Col md={9}>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        id="billingPhone"
+                                        name="billingAddress.phone"
+                                        value={orderData.billingAddress.phone}
+                                        onChange={handleInputChange}
+                                    />
+                                    {formErrors["billingPhone"] && (
+                                        <div className="text-danger">{formErrors["billingPhone"]}</div>
+                                    )}
+                                </Col>
+                            </Row>
+
+                            <Row className="mb-3">
+                                <Col md={3}><label htmlFor="billingStreet">Street</label></Col>
+                                <Col md={9}>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        id="billingStreet"
+                                        name="billingAddress.street"
+                                        value={orderData.billingAddress.street}
+                                        onChange={handleInputChange}
+                                    />
+                                    {formErrors["billingStreet"] && (
+                                        <div className="text-danger">{formErrors["billingStreet"]}</div>
+                                    )}
+                                </Col>
+                            </Row>
+
+                            <Row className="mb-3">
+                                <Col md={3}><label htmlFor="billingCity">City</label></Col>
+                                <Col md={9}>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        id="billingCity"
+                                        name="billingAddress.city"
+                                        value={orderData.billingAddress.city}
+                                        onChange={handleInputChange}
+                                    />
+                                    {formErrors["billingCity"] && (
+                                        <div className="text-danger">{formErrors["billingCity"]}</div>
+                                    )}
+                                </Col>
+                            </Row>
+
+                            <Row className="mb-3">
+                                <Col md={3}><label htmlFor="billingZipCode">Zip Code</label></Col>
+                                <Col md={9}>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        id="billingZipCode"
+                                        name="billingAddress.zipCode"
+                                        value={orderData.billingAddress.zipCode}
+                                        onChange={handleInputChange}
+                                    />
+                                    {formErrors["billingZipCode"] && (
+                                        <div className="text-danger">{formErrors["billingZipCode"]}</div>
+                                    )}
+                                </Col>
+                            </Row>
+
+                            <Row className="mb-3">
+                                <Col md={3}><label htmlFor="billingCountry">Country</label></Col>
+                                <Col md={9}>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        id="billingCountry"
+                                        name="billingAddress.country"
+                                        value={orderData.billingAddress.country}
+                                        onChange={handleInputChange}
+                                    />
+                                    {formErrors["billingCountry"] && (
+                                        <div className="text-danger">{formErrors["billingCountry"]}</div>
+                                    )}
+                                </Col>
+                            </Row>
+
+                            <Button onClick={() => handleNextAccordion("payment")} variant="primary"
+                                    disabled={loading || Object.keys(formErrors).length > 0}>
+                                Next
+                            </Button>
                         </Accordion.Body>
                     </Accordion.Item>
 
                     {/* Payment Section */}
-                    <Accordion.Item eventKey="1">
+                    <Accordion.Item eventKey="3">
                         <Accordion.Header>Payment</Accordion.Header>
                         <Accordion.Body>
-                            <Row className="mb-3 align-items-center">
+                            <Row className="mb-3">
                                 <Col md={3}><label htmlFor="paymentType">Payment Type</label></Col>
                                 <Col md={9}>
                                     <select
@@ -385,20 +393,18 @@ const CheckoutComponent = () => {
                                         <option value="CREDIT_CARD">Credit Card</option>
                                         <option value="BANK_TRANSFER">Bank Transfer</option>
                                     </select>
+                                    {formErrors["paymentType"] &&
+                                        <div className="text-danger">{formErrors["paymentType"]}</div>}
                                 </Col>
                             </Row>
+                            <Button type="submit" variant="success"
+                                    disabled={loading || Object.keys(formErrors).length > 0}>
+                                {loading ? "Processing..." : "Submit Order"}
+                            </Button>
+
                         </Accordion.Body>
                     </Accordion.Item>
                 </Accordion>
-
-                <div className="d-flex justify-content-end mt-3">
-                    <Button variant="secondary" type="reset">
-                        Reset
-                    </Button>
-                    <Button variant="success" type="submit" disabled={loading} className="ml-3">
-                        {loading ? "Processing..." : "Submit Order"}
-                    </Button>
-                </div>
             </Form>
         </div>
     );

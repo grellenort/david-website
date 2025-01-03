@@ -1,48 +1,28 @@
-import { BasketItem, getBasket, clearBasket } from "./BasketSingleton.tsx";
-import { useEffect, useState } from "react";
-import { Cart, Trash } from "react-bootstrap-icons"; // Trash icon for clear basket
+import React from "react";
+import { Cart, Trash } from "react-bootstrap-icons";
 import { Link } from "react-router-dom";
 import { ROUTES } from "../../App.tsx";
+import { useBasket } from "./BasketContext";
 
-// Updated BasketNavigation component with recycle bin icon
-const BasketNavigation = (props: { basketItems: BasketItem[] }) => {
-    const [basket, setBasket] = useState<BasketItem[]>(() => getBasket());
+const BasketNavigation: React.FC = () => {
+    const { state, dispatch } = useBasket();
 
-    // Update the basket whenever basketItems in props change
-    useEffect(() => {
-        const loadedBasket = getBasket();
-        setBasket(loadedBasket);
-    }, [props.basketItems]);
+    const getTotalPrice = () =>
+        state.items.reduce((total, item) => total + item.product.priceAmount * item.quantity, 0);
 
-    // Function to get the total price
-    const getTotalPrice = () => {
-        return basket.reduce((total, item) => total + item.product.priceAmount * 1, 0);
-    };
+    const getTotalCount = () => state.items.reduce((count, item) => count + item.quantity, 0);
 
-    // Function to get the total item count
-    const getTotalCount = () => {
-        return basket.length;
-    };
-
-    // Handle clear basket logic
     const handleClearBasket = () => {
-        clearBasket();  // Clears basket data from localStorage
-        setBasket([]);  // Clears the basket state
+        dispatch({ type: "CLEAR_BASKET" });
     };
 
     return (
         <div className="d-flex align-items-center justify-content-between">
-            <Link className="d-flex align-items-center" to={ROUTES.BASKET}>
+            <Link className="d-flex align-items-center" to={ROUTES.CHECKOUT}>
                 <Cart />
                 <span className="ms-2">{getTotalCount()} items</span> | <span className="ms-2">{getTotalPrice()} Kč</span>
             </Link>
-
-            {/* Recycle bin icon for clearing the basket */}
-            <span
-                className="d-flex align-items-center ms-3 cursor-pointer"
-                onClick={handleClearBasket}
-                style={{ cursor: 'pointer' }} // Inline style for pointer cursor
-            >
+            <span className="d-flex align-items-center ms-3" onClick={handleClearBasket} style={{ cursor: "pointer" }}>
                 <Trash size={24} />
             </span>
         </div>

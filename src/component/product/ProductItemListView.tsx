@@ -25,9 +25,6 @@ const ProductItemListView: React.FC<ProductItemViewProps> = ({ product, onAddToC
                 </Card.Text>
             </Card.Body>
             <Card.Footer className="d-flex justify-content-between">
-                <Button variant="primary" onClick={() => onViewDetails(product)}>
-                    View Details
-                </Button>
                 <Button variant="success" onClick={() => onAddToCart(product)}>
                     Add to Cart
                 </Button>
