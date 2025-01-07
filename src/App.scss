@@ -20,3 +20,43 @@
   }
 }
 
+/* Styling for the slider container */
+.slider-container {
+  width: 100%;
+  margin-top: 16px;
+}
+
+/* Styling for the slider track */
+.slider-track {
+  background-color: #ddd;
+  border-radius: 4px;
+  height: 8px;
+  position: relative;
+}
+
+/* Styling for the slider thumb (the draggable element) */
+.slider-thumb {
+  background-color: #007bff;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+/* Styling for the minimum and maximum value labels */
+.d-flex.justify-content-between {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+span {
+  font-size: 14px;
+  color: #555;
+}
+
+.nav-link {
+  position: relative;
+  z-index: 10;
+}
+
