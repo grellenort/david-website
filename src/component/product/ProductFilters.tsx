@@ -20,7 +20,6 @@ const ProductFilters: React.FC<ProductFiltersProps> = memo(({ filters, onFilterC
         <div className="filters p-3">
             <h5>Filters</h5>
 
-            {/* Price Range Slider */}
             <div>
                 <label>Price Range</label>
                 <ReactSlider

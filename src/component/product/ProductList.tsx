@@ -6,6 +6,7 @@ import ProductItemListView from "./ProductItemListView";
 import {Filters} from "./model/Filters.ts";
 const baseURL = "https://waldashop.herokuapp.com/api";
 const productClient = new GenericFetchClient(baseURL);
+import {Spinner} from "react-bootstrap";
 
 interface ProductListProps {
     filters: Filters;
@@ -42,17 +43,24 @@ const ProductList: React.FC<ProductListProps> = ({ filters }) => {
         loadProducts();
     }, [filters]);
 
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>Error: {error}</div>;
-
     return (
-        <Row>
-            {products.map((product) => (
-                <Col key={product.name} md={4} lg={3}>
-                    <ProductItemListView product={product} />
-                </Col>
-            ))}
-        </Row>
+        <div>
+            {/* Conditionally render loading spinner */}
+            {loading ? (
+                <div className="d-flex justify-content-center">
+                    <Spinner animation="border" role="status"/>
+                    <span className="sr-only">Loading...</span>
+                </div>
+            ) : (
+                <Row>
+                    {products.map((product) => (
+                        <Col key={product.name} md={4} lg={3}>
+                            <ProductItemListView product={product}/>
+                        </Col>
+                    ))}
+                </Row>
+            )}
+        </div>
     );
 };
 
