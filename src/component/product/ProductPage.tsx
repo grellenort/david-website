@@ -4,8 +4,7 @@ import ProductFilters from "./ProductFilters";
 import ProductList from "./ProductList";
 import {Filters} from "./model/Filters.ts";
 import {Col} from "react-bootstrap";
-
-
+import { useDebounce } from "../../DebounceUtils.tsx";
 
 const ProductPage: React.FC = () => {
     const location = useLocation();
@@ -25,15 +24,15 @@ const ProductPage: React.FC = () => {
     }, [location.search, categoryId]); // Rebuild filters when URL changes
 
     const [filters, setFilters] = useState<Filters>(initialFilters);
+    const debouncedFilters = useDebounce(filters, 500);
 
     useEffect(() => {
         const params = new URLSearchParams();
-        params.set("priceMin", filters.priceMin.toString());
-        params.set("priceMax", filters.priceMax.toString());
-        params.set("sortBy", filters.sortBy);
-        params.set("category", filters.category);
-        params.set("pageNumber", filters.pageNumber.toString());
-        params.set("pageSize", filters.pageSize.toString());
+        params.set("priceMin", debouncedFilters.priceMin.toString());
+        params.set("priceMax", debouncedFilters.priceMax.toString());
+        params.set("sortBy", debouncedFilters.sortBy);
+        params.set("pageNumber", debouncedFilters.pageNumber.toString());
+        params.set("pageSize", debouncedFilters.pageSize.toString());
 
         navigate({search: `?${params.toString()}`}, {replace: true});
     }, [filters, navigate]);
@@ -51,7 +50,7 @@ const ProductPage: React.FC = () => {
                 />
             </Col>
             <Col lg={9}>
-                <ProductList filters={filters}/>
+                <ProductList filters={debouncedFilters}/>
             </Col>
         </div>
     );

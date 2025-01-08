@@ -7,6 +7,8 @@ import {Filters} from "./model/Filters.ts";
 const baseURL = "https://waldashop.herokuapp.com/api";
 const productClient = new GenericFetchClient(baseURL);
 import {Spinner} from "react-bootstrap";
+import {useNavigate} from "react-router-dom";
+import {useBasket} from "../basket/BasketContext.tsx";
 
 interface ProductListProps {
     filters: Filters;
@@ -16,6 +18,18 @@ const ProductList: React.FC<ProductListProps> = ({ filters }) => {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const { dispatch } = useBasket();
+    const navigate = useNavigate();
+
+    const addToCart = (product: Product) => {
+        // Dispatch action to add product to basket via context
+        console.log(`Added ${product.name} to cart`);
+        dispatch({
+            type: 'ADD_TO_BASKET',
+            product,
+            quantity: 1,
+        });
+    };
 
     useEffect(() => {
         const loadProducts = async () => {
@@ -25,12 +39,11 @@ const ProductList: React.FC<ProductListProps> = ({ filters }) => {
                     priceMin: filters.priceMin.toString(),
                     priceMax: filters.priceMax.toString(),
                     sortBy: filters.sortBy,
-                    category: filters.category,
                     pageNumber: filters.pageNumber.toString(),
                     pageSize: filters.pageSize.toString(),
                 });
 
-                const response = await productClient.fetchData<{ data: Product[] }>("/products/filter", `?${params}`);
+                const response = await productClient.fetchData<{ data: Product[] }>("/products/filter", `${params}`);
                 setProducts(response.data);
                 setError(null);
             } catch (err) {
@@ -55,7 +68,16 @@ const ProductList: React.FC<ProductListProps> = ({ filters }) => {
                 <Row>
                     {products.map((product) => (
                         <Col key={product.name} md={4} lg={3}>
-                            <ProductItemListView product={product}/>
+                            <ProductItemListView product={product}
+                                                 onAddToCart={(prod) => {
+                                                     addToCart(prod);
+                                                 }}
+                                                 onViewDetails={(prod) => {
+                                                     navigate(`/product-detail/${prod.url}`);
+                                                 }}
+                            />
+
+
                         </Col>
                     ))}
                 </Row>
