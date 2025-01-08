@@ -12,6 +12,7 @@ import BasketNavigation from './component/basket/BasketNavigation.tsx';
 import OrderConfirmationComponent from "./component/checkout/OrderConfirmation.tsx";
 import CheckoutComponent from "./component/checkout/Checkout.tsx";
 import {BasketProvider} from "./component/basket/BasketContext.tsx";
+import ProductPage from "./component/product/ProductPage.tsx";
 
 export const ROUTES = {
     HOME: '/',
@@ -51,7 +52,7 @@ function App() {
                             {/*<Route path={ROUTES.CATEGORIES} element={<CategoryListComponent />} />*/}
 
                             <Route path={ROUTES.PRODUCTS}
-                                   element={<ProductListComponent/>}/>
+                                   element={<ProductPage/>}/>
                             <Route path={ROUTES.BASKET} element={<BasketListComponent/>}/>
                             <Route path={ROUTES.CHECKOUT} element={<CheckoutComponent/>}/>
                             <Route path={ROUTES.ORDER_CONFIRMATION} element={<OrderConfirmationComponent/>}/>
