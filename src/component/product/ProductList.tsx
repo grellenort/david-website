@@ -41,6 +41,7 @@ const ProductList: React.FC<ProductListProps> = ({ filters }) => {
                     sortBy: filters.sortBy,
                     pageNumber: filters.pageNumber.toString(),
                     pageSize: filters.pageSize.toString(),
+                    categories: filters.categories
                 });
 
                 const response = await productClient.fetchData<{ data: Product[] }>("/products/filter", `${params}`);
