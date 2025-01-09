@@ -33,8 +33,9 @@ function CategoryListComponent() {
     const handleCategoryClick = (categoryUrl: string) => {
         const params = new URLSearchParams(location.search);
 
+        // Navigate to the category products page and keep existing query parameters
         navigate({
-            pathname: `/products/${categoryUrl}`,
+            pathname: `/products/${categoryUrl}`, // Ensure category is passed in the path
             search: `?${params.toString()}`, // Keep existing query params
         });
     };

@@ -53,7 +53,7 @@ const ProductPage: React.FC = () => {
                 />
             </Col>
             <Col lg={9}>
-                <ProductList filters={debouncedFilters} />
+                <ProductList filters={debouncedFilters} categoryId={categoryId}/>
             </Col>
         </div>
     );

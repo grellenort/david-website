@@ -4,5 +4,4 @@ export type Filters = {
     sortBy: string;
     pageNumber: number;
     pageSize: number;
-    categories: string;
 };

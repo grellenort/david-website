@@ -7,14 +7,15 @@ import {Filters} from "./model/Filters.ts";
 const baseURL = "https://waldashop.herokuapp.com/api";
 const productClient = new GenericFetchClient(baseURL);
 import {Spinner} from "react-bootstrap";
-import {useNavigate} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {useBasket} from "../basket/BasketContext.tsx";
 
 interface ProductListProps {
     filters: Filters;
+    categoryId?: string | undefined;
 }
 
-const ProductList: React.FC<ProductListProps> = ({ filters }) => {
+const ProductList: React.FC<ProductListProps> = ({ filters, categoryId}) => {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -22,7 +23,6 @@ const ProductList: React.FC<ProductListProps> = ({ filters }) => {
     const navigate = useNavigate();
 
     const addToCart = (product: Product) => {
-        // Dispatch action to add product to basket via context
         console.log(`Added ${product.name} to cart`);
         dispatch({
             type: 'ADD_TO_BASKET',
@@ -41,7 +41,7 @@ const ProductList: React.FC<ProductListProps> = ({ filters }) => {
                     sortBy: filters.sortBy,
                     pageNumber: filters.pageNumber.toString(),
                     pageSize: filters.pageSize.toString(),
-                    categories: filters.categories
+                    categories: categoryId || "",
                 });
 
                 const response = await productClient.fetchData<{ data: Product[] }>("/products/filter", `${params}`);
@@ -55,7 +55,7 @@ const ProductList: React.FC<ProductListProps> = ({ filters }) => {
         };
 
         loadProducts();
-    }, [filters]);
+    }, [filters, categoryId]);
 
     return (
         <div>
